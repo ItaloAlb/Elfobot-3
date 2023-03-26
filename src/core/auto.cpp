@@ -1,11 +1,9 @@
-#include "constant.h"
 #include "auto.h"
+#include "constant.h"
 #include "packet.h"
 #include "enum.h"
-#include "iostream"
 
-void Auto::Targeting(std::atomic<bool>& controller) {
-	controller = true;
+void Auto::Targeting(bool& controller) {
 	while (controller) {
 		uint32_t entity_id = BattleList::GetEntityIdList(ONLY_ONE_WILD_POKEMON).back();
 		if ((*(int*)ADDRESS::RED_SQUARE == 0) || *(int*)ADDRESS::RED_SQUARE != entity_id) {
@@ -15,19 +13,17 @@ void Auto::Targeting(std::atomic<bool>& controller) {
 	}
 }
 
-void Auto::Fishing(std::atomic<bool>& controller, Map& map) {
-	controller = true;
+void Auto::Fishing(bool& controller, Map& map) {
 	while (controller) {
-		Sleep(COOLDOWN::TIME_TO_WAIT_FOR_FISHING);
 		Vector3* fishing_location = new Vector3(map.GetFishingTileLocation());
 		SendPacket::UseOn(AUTO::FISHING_ROD_CONTAINER_ID, AUTO::FISHING_ROD_ID, fishing_location->x, fishing_location->y, fishing_location->z);
 		delete fishing_location;
+		Sleep(COOLDOWN::TIME_TO_WAIT_FOR_FISHING);
 	}
 }
 
 //need improvement
-void Auto::Attacking(std::atomic<bool>& controller) {
-	controller = true;
+void Auto::Attacking(bool& controller) {
 	while (controller) {
 		const char* moves[] = { "m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9", "m10", "m11", "m12" };
 		for (int i = 0; i < 12; i++) {

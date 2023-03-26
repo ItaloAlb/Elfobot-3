@@ -123,3 +123,8 @@ namespace AUTO {
 	const int MAX_FISHING_TILE_ID_VALUE = 0x00001598;
 	const int MIN_FISHING_TILE_ID_VALUE = 0x00001596;
 }
+
+namespace GUI {
+	const int WIDTH = 250;
+	const int HEIGHT = 350;
+}
