@@ -15,15 +15,30 @@ Tile::Tile() {
 	// default constructor
 }
 
+bool Tile::IsValidFishingLocation() {
+	return	*id >= AUTO::MIN_FISHING_TILE_ID_VALUE &&
+			*id <= AUTO::MAX_FISHING_TILE_ID_VALUE &&
+			std::abs(x_position - *POINTER::LOCAL_PLAYER_X_POSITION) <= 7 &&
+			std::abs(y_position - *POINTER::LOCAL_PLAYER_Y_POSITION) <= 5;
+}
+
 Map::Map() {
-	Update();
+	Map::state = false;
+	Initialize();
 	return;
 }
 
-void Map::Update() {
+void Map::Initialize() {
 	if (*POINTER::CLIENT_STATE == 0) {
 		return;
 	}
+
+	init_x = *POINTER::LOCAL_PLAYER_X_POSITION;
+	init_y = *POINTER::LOCAL_PLAYER_Y_POSITION;
+
+	last_dx = 0;
+	last_dy = 0;
+
 	int i = 0;
 	for (int z = 0; z < 8; z++) {
 		for (int y = 0; y < 14; y++) {
@@ -33,34 +48,65 @@ void Map::Update() {
 			}
 		}
 	}
+	state = true;
 	return;
 }
 
-void Map::Debug() {
-	for (int y = 0; y < 14; y++) {
-		for (int x = 0; x < 18; x++) {
-			std::cout<< * tile[0][y][x].id << ", ";
-		}
-		std::cout << std::endl;
+void Map::Update() {
+	if (*POINTER::CLIENT_STATE == 0) {
+		return;
 	}
-	std::cout << std::endl;
-}
+	if (!state) {
+		Initialize();
+		return;
+	}
 
-Vector3 Map::GetFishingTileLocation() {
-	Vector3 location;
-	for (int y = 0; y < 14; y++) {
-		for (int x = 0; x < 18; x++) {
-			if ((*tile[*POINTER::LOCAL_PLAYER_Z_POSITION - 7][y][x].id >= AUTO::MIN_FISHING_TILE_ID_VALUE) && 
-				(*tile[*POINTER::LOCAL_PLAYER_Z_POSITION - 7][y][x].id <= AUTO::MAX_FISHING_TILE_ID_VALUE) &&
-				(abs(tile[*POINTER::LOCAL_PLAYER_Z_POSITION - 7][y][x].x_position - *POINTER::LOCAL_PLAYER_X_POSITION) <= 7) &&
-				(abs(tile[*POINTER::LOCAL_PLAYER_Z_POSITION - 7][y][x].y_position - *POINTER::LOCAL_PLAYER_Y_POSITION) <= 5)) {
-				location = Vector3(
-					tile[*POINTER::LOCAL_PLAYER_Z_POSITION - 7][y][x].x_position, 
-					tile[*POINTER::LOCAL_PLAYER_Z_POSITION - 7][y][x].y_position, 
-					*POINTER::LOCAL_PLAYER_Z_POSITION);
+	dx = *POINTER::LOCAL_PLAYER_X_POSITION - init_x;
+
+	// Player moveu para direita
+	if (dx > last_dx) {
+		for (int z = 0; z < 8; z++) {
+			for (int y = 0; y < 14; y++) {
+				tile[z][y][-1 + dx].x_position = *POINTER::LOCAL_PLAYER_X_POSITION - 8;
 			}
 		}
 	}
 
-	return location;
+	// Player moveu para esquerda
+	if (dx < last_dx) {
+		for (int z = 0; z < 8; z++) {
+			for (int y = 0; y < 14; y++) {
+				tile[z][y][18 + dx].x_position = *POINTER::LOCAL_PLAYER_X_POSITION - 8;
+			}
+		}	
+	}
+
+	last_dx = dx;
+
+	dy = *POINTER::LOCAL_PLAYER_Y_POSITION - init_y;
+	if (dy != last_dy) {
+		// Player moveu para baixo
+		if (dy > 0) {
+
+		}
+
+		// Player moveu para cima
+		if (dy < 0) {
+
+		}
+	}
+
+	last_dy = dy;
+}
+
+Util::Vector3 Map::GetFishingLocation() {
+	for (int y = 0; y < 14; y++) {
+		for (int x = 0; x < 18; x++) {
+			auto& current_tile = tile[*POINTER::LOCAL_PLAYER_Z_POSITION - 7][y][x];
+			if(current_tile.IsValidFishingLocation()) {
+				return { current_tile.x_position, current_tile.y_position, *POINTER::LOCAL_PLAYER_Z_POSITION };
+			}
+		}
+	}
+	return { };
 }

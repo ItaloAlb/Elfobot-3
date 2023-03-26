@@ -2,23 +2,43 @@
 #include "constant.h"
 #include "packet.h"
 #include "enum.h"
+#include "thread"
+
+using milliseconds = std::chrono::milliseconds;
+
+bool Auto::controller_targeting = false;
+
+bool Auto::controller_fishing = false;
+
+int Auto::controller_fishing_rod_container = 0x40;
+
+int Auto::controller_fishing_rod_id = 0x0;
+
+bool Auto::controller_attacking = false;
+
 
 void Auto::Targeting(bool& controller) {
 	while (controller) {
-		uint32_t entity_id = BattleList::GetEntityIdList(ONLY_ONE_WILD_POKEMON).back();
-		if ((*(int*)ADDRESS::RED_SQUARE == 0) || *(int*)ADDRESS::RED_SQUARE != entity_id) {
-			*(int*)(ADDRESS::RED_SQUARE) = entity_id;
-			SendPacket::Attack(entity_id);
+	auto entity_id_list = BattleList::GetEntityIdList(ONLY_ONE_WILD_POKEMON);
+	if (entity_id_list.empty())
+		break;
+	auto entity_id = entity_id_list.back();
+	if ((*(int*)ADDRESS::RED_SQUARE == 0) || *(int*)ADDRESS::RED_SQUARE != entity_id) {
+		*(int*)(ADDRESS::RED_SQUARE) = entity_id;
+		SendPacket::Attack(entity_id);
 		}
 	}
 }
 
-void Auto::Fishing(bool& controller, Map& map) {
+void Auto::Fishing(bool& controller) {
+	Map map = Map();
 	while (controller) {
-		Vector3* fishing_location = new Vector3(map.GetFishingTileLocation());
-		SendPacket::UseOn(AUTO::FISHING_ROD_CONTAINER_ID, AUTO::FISHING_ROD_ID, fishing_location->x, fishing_location->y, fishing_location->z);
-		delete fishing_location;
-		Sleep(COOLDOWN::TIME_TO_WAIT_FOR_FISHING);
+		map.Update();
+		auto fishing_location = map.GetFishingLocation();
+		if (fishing_location.IsValid()) {
+			SendPacket::UseOn(Auto::controller_fishing_rod_container, Auto::controller_fishing_rod_id, fishing_location);
+			std::this_thread::sleep_for(milliseconds(COOLDOWN::TIME_TO_WAIT_FOR_FISHING));
+		}	
 	}
 }
 
@@ -36,3 +56,11 @@ void Auto::Attacking(bool& controller) {
 	}
 	
 }
+
+void Auto::Callback(std::function<void(bool&)> call, bool& controller) {
+	if (controller && *POINTER::CLIENT_STATE == 1) {
+		std::thread thread_call(call, std::ref(controller));
+		thread_call.detach();
+	}
+}
+

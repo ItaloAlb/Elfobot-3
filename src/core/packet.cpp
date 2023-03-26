@@ -77,6 +77,26 @@ void SendPacket::UseOn(int container, int container_slot, int x_position, int y_
 	Sleep(COOLDOWN::SEND_PACKET);
 }
 
+void SendPacket::UseOn(int container, int container_slot, Util::Vector3 location) {
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_START)(PACKET::USE_ON);
+
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_DATA)(PACKET::DATA);
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_DATA)(container);
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_INFO)(container_slot);
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_DATA)(PACKET::INFO);
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_INFO)(PACKET::INFO);
+
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_DATA)(location.x);
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_DATA)(location.y);
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_INFO)(location.z);
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_DATA)(PACKET::INFO);
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_INFO)(PACKET::INFO);
+
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_END)(PACKET::END);
+
+	Sleep(COOLDOWN::SEND_PACKET);
+}
+
 void SendPacket::Follow(int creature) {
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_START)(PACKET::FOLLOW);
 

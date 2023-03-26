@@ -2,35 +2,41 @@
 #include "enum.h"
 #include "util.h"
 
-using namespace std;
-using namespace Struct;
+class Tile {
+	public:
+		// item_count: a pointer to tile item count value (i.e. how many items a tile has)
+		int* item_count;
+		// id: a pointer to tile id value 
+		int* id;
 
-struct Tile {
-	// item_count: a pointer to tile item count value
-	int* item_count;
-	// id: a pointer to tile id value
-	int* id;
+		int x_position;
+		int y_position;
+		int z_position;
 
-	int x_position;
-	int y_position;
-	int z_position;
+		Tile();
 
-	Tile();
+		Tile(int* adress, int x, int y, int z);
 
-	Tile(int* adress, int x, int y, int z);
+		bool IsValidFishingLocation();
 };
 
 class Map {
 	private:
 		bool state;
+
+		int init_x, init_y;
+		int last_dx, last_dy;
+		int dx, dy;
 	public:
 		Tile tile[8][14][18];
 
 		Map();
 
+		void Initialize();
+
 		void Update();
 
-		Vector3 GetFishingTileLocation();
+		Util::Vector3 GetFishingLocation();
 
-		void Debug();
+
 };

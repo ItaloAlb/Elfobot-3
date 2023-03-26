@@ -123,12 +123,12 @@ LRESULT WINAPI UI::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return ::DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-void UI::Render()
+void UI::Render(HMODULE hModule)
 {
     ImGui_ImplWin32_EnableDpiAwareness();
-    const WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, _T("ImGui Standalone"), nullptr };
+    const WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, _T("Elfobot 3"), nullptr };
     ::RegisterClassEx(&wc);
-    const HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("ImGui Standalone"), WS_OVERLAPPEDWINDOW, 100, 100, 50, 50, NULL, NULL, wc.hInstance, NULL);
+    const HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("Elfobot 3"), WS_OVERLAPPEDWINDOW, 100, 100, 50, 50, NULL, NULL, wc.hInstance, NULL);
 
     if (!CreateDeviceD3D(hwnd))
     {
@@ -182,12 +182,13 @@ void UI::Render()
 
     while (!bDone)
     {
+
         MSG msg;
         while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
         {
             ::TranslateMessage(&msg);
             ::DispatchMessage(&msg);
-            if (msg.message == WM_QUIT)
+            if (msg.message == WM_CLOSE)
                 bDone = true;
         }
         if (bDone)
@@ -216,10 +217,15 @@ void UI::Render()
         pSwapChain->Present(1, 0);
 
         #ifndef _WINDLL
-            if (!Drawing::isActive())
-                break;
+        if (!Drawing::isActive())
+            break;
         #endif
     }
+
+    if (f) {
+        fclose(f);
+    }
+    FreeConsole();
 
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
@@ -230,6 +236,6 @@ void UI::Render()
     ::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
     #ifdef _WINDLL
-    ExitThread(0);
+    FreeLibraryAndExitThread(hModule, 0);
     #endif
 }

@@ -27,6 +27,11 @@ namespace ADDRESS {
 	const int CLIENT_STATE = PBB_DLL_HANDLE + 0x0013E140;
 
 	const int pMAP_START = MODULE_HANDLE + 0x0024A048;
+
+	const int CONTAINER_STATE = MODULE_HANDLE + 0x00242C40;
+	const int CONTAINER_ID = MODULE_HANDLE + 0x00242C44;
+
+	const int FISHING_ROD_CONTAINER_STATE = MODULE_HANDLE + 0x00243018;
 }
 
 namespace POINTER {
@@ -42,6 +47,12 @@ namespace POINTER {
 
 	// usage: * MAP_START = value // MAP_START = address
 	int* const MAP_START = (int*)(*pMAP_START);
+
+	int* const CONTAINER_STATE = (int*)ADDRESS::CONTAINER_STATE;
+	int* const CONTAINER_ID = (int*)ADDRESS::CONTAINER_ID;
+
+	int* const FISHING_ROD_CONTAINER_STATE = (int*)ADDRESS::FISHING_ROD_CONTAINER_STATE;
+
 }
 
 namespace PACKET {
@@ -119,12 +130,14 @@ namespace COOLDOWN {
 
 namespace AUTO {
 	const int FISHING_ROD_CONTAINER_ID = 0x00000041;
-	const int FISHING_ROD_ID = 0x00000003;
+	const int FISHING_ROD_ID = 0x00000000;
 	const int MAX_FISHING_TILE_ID_VALUE = 0x00001598;
 	const int MIN_FISHING_TILE_ID_VALUE = 0x00001596;
 }
 
 namespace GUI {
+	const LPCSTR NAME = "Elfobot 3";
 	const int WIDTH = 250;
 	const int HEIGHT = 350;
+	static char TARGET_WINDOW[] = "PokeBRO";
 }

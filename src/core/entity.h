@@ -1,6 +1,7 @@
 #pragma once
 #include "string"
 #include "vector"
+#include "util.h"
 
 using namespace std;
 
@@ -18,5 +19,13 @@ class Entity {
 
 		void Update(int address);
 
-		vector<int> DistanceTo(Entity entity);
+		Util::Vector3 Get_Location();
+		
+		int GetId();
+
+		int GetHealth();
+
+		bool GetCanBeAttacked();
+
+		bool IsValidWildPokemon();
 };

@@ -24,7 +24,7 @@ private:
 	static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 public:
-	static void Render();
+	static void Render(HMODULE hModule);
 
 };
 
