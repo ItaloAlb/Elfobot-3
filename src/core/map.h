@@ -36,6 +36,8 @@ class Map {
 
 		void Update();
 
+		void PrintMap();
+
 		Util::Vector3 GetFishingLocation();
 
 

@@ -49,4 +49,5 @@ int BattleList::GetLocalPlayerAddress() {
 			return (ADDRESS::BATTLE_LIST_START_SEARCH + (OFFSET::ENTITY * i));
 		}
 	}
+	return -1;
 }

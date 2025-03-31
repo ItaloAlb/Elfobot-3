@@ -222,9 +222,9 @@ void UI::Render(HMODULE hModule)
         #endif
     }
 
-    if (f) {
-        fclose(f);
-    }
+    //if (f) {
+    //    fclose(f);
+    //}
     FreeConsole();
 
     ImGui_ImplDX11_Shutdown();

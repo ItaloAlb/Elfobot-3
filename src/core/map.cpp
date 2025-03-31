@@ -56,47 +56,24 @@ void Map::Update() {
 	if (*POINTER::CLIENT_STATE == 0) {
 		return;
 	}
-	if (!state) {
+
+	// Se o player mudou de posição, reinicializa o mapa
+	if (*POINTER::LOCAL_PLAYER_X_POSITION != init_x || *POINTER::LOCAL_PLAYER_Y_POSITION != init_y) {
 		Initialize();
-		return;
 	}
+}
 
-	dx = *POINTER::LOCAL_PLAYER_X_POSITION - init_x;
-
-	// Player moveu para direita
-	if (dx > last_dx) {
-		for (int z = 0; z < 8; z++) {
-			for (int y = 0; y < 14; y++) {
-				tile[z][y][-1 + dx].x_position = *POINTER::LOCAL_PLAYER_X_POSITION - 8;
-			}
+void Map::PrintMap()
+{
+	std::cout << "==== MAP DATA ====" << std::endl;
+	for (int y = 0; y < 14; y++) {
+		for (int x = 0; x < 18; x++) {
+			auto& current_tile = tile[*POINTER::LOCAL_PLAYER_Z_POSITION - 7][y][x];
+			std::cout << "[" << current_tile.id << "] ";
 		}
+		std::cout << std::endl;
 	}
-
-	// Player moveu para esquerda
-	if (dx < last_dx) {
-		for (int z = 0; z < 8; z++) {
-			for (int y = 0; y < 14; y++) {
-				tile[z][y][18 + dx].x_position = *POINTER::LOCAL_PLAYER_X_POSITION - 8;
-			}
-		}	
-	}
-
-	last_dx = dx;
-
-	dy = *POINTER::LOCAL_PLAYER_Y_POSITION - init_y;
-	if (dy != last_dy) {
-		// Player moveu para baixo
-		if (dy > 0) {
-
-		}
-
-		// Player moveu para cima
-		if (dy < 0) {
-
-		}
-	}
-
-	last_dy = dy;
+	std::cout << "==================" << std::endl;
 }
 
 Util::Vector3 Map::GetFishingLocation() {

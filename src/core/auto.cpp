@@ -10,23 +10,23 @@ bool Auto::controller_targeting = false;
 
 bool Auto::controller_fishing = false;
 
-int Auto::controller_fishing_rod_container = 0x40;
+int Auto::controller_fishing_rod_container = 0x41;
 
 int Auto::controller_fishing_rod_id = 0x0;
 
 bool Auto::controller_attacking = false;
 
-
 void Auto::Targeting(bool& controller) {
 	while (controller) {
-	auto entity_id_list = BattleList::GetEntityIdList(ONLY_ONE_WILD_POKEMON);
-	if (entity_id_list.empty())
-		break;
-	auto entity_id = entity_id_list.back();
-	if ((*(int*)ADDRESS::RED_SQUARE == 0) || *(int*)ADDRESS::RED_SQUARE != entity_id) {
-		*(int*)(ADDRESS::RED_SQUARE) = entity_id;
-		SendPacket::Attack(entity_id);
+		auto entity_id_list = BattleList::GetEntityIdList(ONLY_ONE_WILD_POKEMON);
+		if (!entity_id_list.empty()) {
+			auto entity_id = entity_id_list.back();
+			if ((*(int*)ADDRESS::RED_SQUARE == 0) || *(int*)ADDRESS::RED_SQUARE != entity_id) {
+				*(int*)(ADDRESS::RED_SQUARE) = entity_id;
+				SendPacket::Attack(entity_id);
+			}
 		}
+		std::this_thread::sleep_for(milliseconds(COOLDOWN::TIME_TO_WAIT_FOR_TARGETING));
 	}
 }
 

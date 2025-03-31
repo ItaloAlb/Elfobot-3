@@ -10,7 +10,7 @@ void SendPacket::Step(int direction) {
 }
 
 void SendPacket::LookItem(int container, int container_slot, int container_item) {
-	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_END)(PACKET::LOOK_ITEM);
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_START)(PACKET::LOOK_ITEM);
 
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_DATA)(PACKET::DATA);
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_DATA)(container);
@@ -18,7 +18,7 @@ void SendPacket::LookItem(int container, int container_slot, int container_item)
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_DATA)(container_item);
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_INFO)(PACKET::INFO);
 
-	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_START)(PACKET::END);
+	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_END)(PACKET::END);
 
 	Sleep(COOLDOWN::SEND_PACKET);
 }
