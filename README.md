@@ -1,5 +1,5 @@
-# Elfobot-3
-A gaming bot for PokeBRO.
+# Elfobot-3 
+A gaming bot under development for PokeBRO.
 
 Features:
 - auto targeting
