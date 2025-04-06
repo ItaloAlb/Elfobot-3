@@ -6,7 +6,7 @@ void SendPacket::Step(int direction) {
 
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_END)(PACKET::END);
 
-	Sleep(COOLDOWN::SEND_PACKET);
+	//Sleep(COOLDOWN::SEND_PACKET);
 }
 
 void SendPacket::LookItem(int container, int container_slot, int container_item) {
@@ -129,13 +129,17 @@ void SendPacket::FightMode(int fighting_mode, int stand_mode, int attack_unmarke
 	Sleep(COOLDOWN::SEND_PACKET);
 }
 
-void SendPacket::Say(char text[], int channel) {
+void SendPacket::Say(const char text[], int channel) {
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_START)(PACKET::SAY);
 
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_INFO)(channel);
-	reinterpret_cast<void(__cdecl*)(char*)>(ADDRESS::PACKET_SAY)(text);
+	reinterpret_cast<void(__cdecl*)(const char*)>(ADDRESS::PACKET_SAY)(text);
 
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_END)(PACKET::END);
 
 	Sleep(COOLDOWN::SEND_PACKET);
 }
+
+//void SendPacket::Test() {
+//	reinterpret_cast<MyFunctionType>(FUNCTION_ADDRESS);
+//}

@@ -29,6 +29,8 @@ namespace SendPacket {
 	void FightMode(int fighting_mode, int stand_mode, int attack_unmarked);
 
 	//Say a text in a chat channel. Can be use to cast pokemon's moves.
-	void Say(char text[], int channel);
+	void Say(const char text[], int channel);
+
+	void Test();
 
 }

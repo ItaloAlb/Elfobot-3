@@ -3,11 +3,125 @@
 
 #include "imgui_impl_dx11.h"
 #include "imgui_impl_win32.h"
+#include <filesystem>
 
 ID3D11Device* UI::pd3dDevice = nullptr;
 ID3D11DeviceContext* UI::pd3dDeviceContext = nullptr;
 IDXGISwapChain* UI::pSwapChain = nullptr;
 ID3D11RenderTargetView* UI::pMainRenderTargetView = nullptr;
+
+ID3D11ShaderResourceView* UI::teamBuilderTexture = nullptr;
+
+ID3D11ShaderResourceView* UI::LoadTextureFromFile(const wchar_t* filename) {
+    IWICImagingFactory* pFactory = nullptr;
+    IWICBitmapDecoder* pDecoder = nullptr;
+    IWICBitmapFrameDecode* pFrame = nullptr;
+    IWICFormatConverter* pConverter = nullptr;
+    ID3D11ShaderResourceView* pTextureSRV = nullptr;
+
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    if (FAILED(hr)) {
+        MessageBoxW(nullptr, L"Falha ao inicializar o COM.", L"Erro", MB_OK);
+        return nullptr;
+    }
+
+    hr = CoCreateInstance(
+        CLSID_WICImagingFactory,
+        nullptr,
+        CLSCTX_INPROC_SERVER,
+        IID_PPV_ARGS(&pFactory)
+    );
+
+    if (SUCCEEDED(hr)) {
+        hr = pFactory->CreateDecoderFromFilename(
+            filename,
+            nullptr,
+            GENERIC_READ,
+            WICDecodeMetadataCacheOnDemand,
+            &pDecoder
+        );
+    }
+
+    if (SUCCEEDED(hr)) {
+        hr = pDecoder->GetFrame(0, &pFrame);
+    }
+
+    // Convert the image format to RGBA32
+    if (SUCCEEDED(hr)) {
+        hr = pFactory->CreateFormatConverter(&pConverter);
+    }
+
+    if (SUCCEEDED(hr)) {
+        hr = pConverter->Initialize(
+            pFrame,
+            GUID_WICPixelFormat32bppRGBA,
+            WICBitmapDitherTypeNone,
+            nullptr,
+            0.0f,
+            WICBitmapPaletteTypeCustom
+        );
+    }
+
+    UINT width = 0, height = 0;
+    if (SUCCEEDED(hr)) {
+        hr = pConverter->GetSize(&width, &height);
+    }
+
+    if (SUCCEEDED(hr) && width > 0 && height > 0) {
+        std::vector<BYTE> buffer(width * height * 4); // 4 bytes per pixel (RGBA)
+        hr = pConverter->CopyPixels(nullptr, width * 4, static_cast<UINT>(buffer.size()), buffer.data());
+
+        if (SUCCEEDED(hr)) {
+            D3D11_TEXTURE2D_DESC desc = {};
+            desc.Width = width;
+            desc.Height = height;
+            desc.MipLevels = 1;
+            desc.ArraySize = 1;
+            desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            desc.SampleDesc.Count = 1;
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+            D3D11_SUBRESOURCE_DATA initData = {};
+            initData.pSysMem = buffer.data();
+            initData.SysMemPitch = width * 4; // RGBA = 4 bytes per pixel
+
+            ID3D11Texture2D* pTexture = nullptr;
+            hr = UI::pd3dDevice->CreateTexture2D(&desc, &initData, &pTexture);
+            if (SUCCEEDED(hr)) {
+                D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+                srvDesc.Format = desc.Format;
+                srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+                srvDesc.Texture2D.MipLevels = 1;
+                hr = UI::pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &pTextureSRV);
+                pTexture->Release();
+            }
+        }
+    }
+
+    if (pConverter) pConverter->Release();
+    if (pFrame) pFrame->Release();
+    if (pDecoder) pDecoder->Release();
+    if (pFactory) pFactory->Release();
+
+    return pTextureSRV;
+}
+
+void UI::LoadResource() {
+    std::wstring path = L"img/button1.png";
+
+    // Verifique se o arquivo existe usando std::filesystem
+    if (!std::filesystem::exists(path)) {
+        MessageBoxW(nullptr, (L"Arquivo não encontrado: " + path).c_str(), L"Erro", MB_OK);
+        return;
+    }
+
+    // Carregue a textura
+    UI::teamBuilderTexture = LoadTextureFromFile(path.c_str());
+    if (!UI::teamBuilderTexture) {
+        MessageBoxW(nullptr, L"Falha ao criar a textura DirectX!", L"Erro", MB_OK);
+    }
+}
 
 bool UI::CreateDeviceD3D(HWND hWnd)
 {
@@ -179,6 +293,8 @@ void UI::Render(HMODULE hModule)
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     bool bDone = false;
+
+    //LoadResource();
 
     while (!bDone)
     {

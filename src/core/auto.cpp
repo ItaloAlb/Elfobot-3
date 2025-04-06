@@ -10,11 +10,34 @@ bool Auto::controller_targeting = false;
 
 bool Auto::controller_fishing = false;
 
-int Auto::controller_fishing_rod_container = 0x41;
+bool Auto::controller_loving = false;
+
+bool Auto::controller_egg_loving = false;
+
+int Auto::controller_fishing_rod_container = 0x40;
 
 int Auto::controller_fishing_rod_id = 0x0;
 
 bool Auto::controller_attacking = false;
+
+bool Auto::controller_connecting = false;
+
+bool Auto::is_wasd_move = false;
+
+bool Auto::top_hunt = false;
+
+int Auto::aoeCount[6] = { 2, 2, 2, 2, 2, 2 };
+
+bool Auto::cooldownActive[6] = { false, false, false, false, false, false };
+float Auto::cooldownRemaining[6] = { 0, 0, 0, 0, 0, 0 };
+
+char Auto::buff[6][4] = { 0 };
+char Auto::protect[6][4] = { 0 };
+char Auto::aoe[6][4][4] = { 0 };
+char Auto::cooldown[6][4] = { 0 };
+int Auto::iCooldown[6] = { 0 };
+
+int Auto::slot[6] = { 0 };
 
 void Auto::Targeting(bool& controller) {
 	while (controller) {
@@ -42,7 +65,6 @@ void Auto::Fishing(bool& controller) {
 	}
 }
 
-//need improvement
 void Auto::Attacking(bool& controller) {
 	while (controller) {
 		const char* moves[] = { "m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9", "m10", "m11", "m12" };
@@ -57,6 +79,22 @@ void Auto::Attacking(bool& controller) {
 	
 }
 
+void Auto::Loving(bool& controller) {
+	while (controller) {
+		SendPacket::Say(COMMANDS::LOVE, 0x1);
+		Sleep(COOLDOWN::TIME_TO_WAIT_FOR_LOVING);
+	};
+
+}
+
+void Auto::Egg_Loving(bool& controller) {
+	while (controller) {
+		SendPacket::Say(COMMANDS::EGG_LOVE, 0x1);
+		Sleep(COOLDOWN::TIME_TO_WAIT_FOR_EGG_LOVING);
+	};
+
+}
+
 void Auto::Callback(std::function<void(bool&)> call, bool& controller) {
 	if (controller && *POINTER::CLIENT_STATE == 1) {
 		std::thread thread_call(call, std::ref(controller));
@@ -64,3 +102,12 @@ void Auto::Callback(std::function<void(bool&)> call, bool& controller) {
 	}
 }
 
+void Auto::Connecting(bool& controller) {
+	while (controller) {
+		if (*POINTER::CLIENT_STATE == 0) {
+			SendPacket::Say(COMMANDS::CONNECT, 0x1);
+		}
+		Sleep(128);
+	};
+
+}

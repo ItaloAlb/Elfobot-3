@@ -1,37 +1,44 @@
 #pragma once
 #include "iostream"
 #include "windows.h"
+#include <cstdint>
 
 namespace ADDRESS {
-	const int MODULE_HANDLE = (int)GetModuleHandle(L"Client.exe");
-	const int PBB_DLL_HANDLE = (int)GetModuleHandle(L"pbb.dll");
+	const uintptr_t MODULE_HANDLE = reinterpret_cast<uintptr_t>(GetModuleHandle(L"Client.exe"));
+	const uintptr_t PBB_DLL_HANDLE = reinterpret_cast<uintptr_t>(GetModuleHandle(L"pbb.dll"));
 
-	const int PACKET_START = MODULE_HANDLE + 0x000F3680;
-	const int PACKET_END = MODULE_HANDLE + 0x000F4230;
-	const int PACKET_DATA = MODULE_HANDLE + 0x000F3AF0;
-	const int PACKET_INFO = MODULE_HANDLE + 0x000F3950;
+	const uintptr_t PACKET_START = MODULE_HANDLE + 0x000F3680;
+	const uintptr_t PACKET_END = MODULE_HANDLE + 0x000F4230;
+	const uintptr_t PACKET_DATA = MODULE_HANDLE + 0x000F3AF0;
+	const uintptr_t PACKET_INFO = MODULE_HANDLE + 0x000F3950;
 
-	const int PACKET_TARGET = MODULE_HANDLE + 0x000F3C90;
-	const int PACKET_SAY = MODULE_HANDLE + 0x000F3E30;
+	const uintptr_t PACKET_TARGET = MODULE_HANDLE + 0x000F3C90;
+	const uintptr_t PACKET_SAY = MODULE_HANDLE + 0x000F3E30;
 
-	const int RED_SQUARE = MODULE_HANDLE + 0x00235EDC;
+	const uintptr_t RED_SQUARE = MODULE_HANDLE + 0x00235EDC;
 
-	const int BATTLE_LIST_START_SEARCH = MODULE_HANDLE + 0x00235F70;
+	const uintptr_t BATTLE_LIST_START_SEARCH = MODULE_HANDLE + 0x00235F70;
 
-	const int LOCAL_PLAYER_ID = MODULE_HANDLE + 0x00235F10;
+	const uintptr_t LOCAL_PLAYER_ID = MODULE_HANDLE + 0x00235F10;
 
-	const int LOCAL_PLAYER_X_POSITION = MODULE_HANDLE + 0x00245538;
-	const int LOCAL_PLAYER_Y_POSITION = MODULE_HANDLE + 0x00245534;
-	const int LOCAL_PLAYER_Z_POSITION = MODULE_HANDLE + 0x00245530;
+	const uintptr_t LOCAL_PLAYER_X_POSITION = MODULE_HANDLE + 0x00245538;
+	const uintptr_t LOCAL_PLAYER_Y_POSITION = MODULE_HANDLE + 0x00245534;
+	const uintptr_t LOCAL_PLAYER_Z_POSITION = MODULE_HANDLE + 0x00245530;
 
-	const int CLIENT_STATE = PBB_DLL_HANDLE + 0x0013E140;
+	const uintptr_t CLIENT_STATE = PBB_DLL_HANDLE + 0x0013E140;
 
-	const int pMAP_START = MODULE_HANDLE + 0x0024A048;
+	const uintptr_t pMAP_START = MODULE_HANDLE + 0x0024A048;
 
-	const int CONTAINER_STATE = MODULE_HANDLE + 0x00242C40;
-	const int CONTAINER_ID = MODULE_HANDLE + 0x00242C44;
+	const uintptr_t CONTAINER_STATE = MODULE_HANDLE + 0x00242C40;
+	const uintptr_t CONTAINER_ID = MODULE_HANDLE + 0x00242C44;
 
-	const int FISHING_ROD_CONTAINER_STATE = MODULE_HANDLE + 0x00243018;
+	const uintptr_t FISHING_ROD_CONTAINER_STATE = MODULE_HANDLE + 0x00243018;
+
+	const uintptr_t POKEMON_SLOT = PBB_DLL_HANDLE + 0x0013E404;
+
+	const uintptr_t FIGHTING_MODE = MODULE_HANDLE + 0x0038FC1C;
+
+	const uintptr_t EXHAUSTED = MODULE_HANDLE + 0x002455A0;
 }
 
 namespace POINTER {
@@ -53,6 +60,9 @@ namespace POINTER {
 
 	int* const FISHING_ROD_CONTAINER_STATE = (int*)ADDRESS::FISHING_ROD_CONTAINER_STATE;
 
+	uintptr_t* const POKEMON_SLOT = (uintptr_t*)ADDRESS::POKEMON_SLOT;
+
+	uintptr_t* const FIGHTING_MODE = (uintptr_t*)ADDRESS::FIGHTING_MODE;
 }
 
 namespace PACKET {
@@ -61,13 +71,14 @@ namespace PACKET {
 	const int INFO = 0x00000000;
 	const int END = 0x00000001;
 
+	const int STEP = 0x00000066;
 	const int LOOK_ITEM = 0x0000008C;
 	const int USE_ITEM = 0x00000082;
 	const int MOVE_ITEM = 0x00000078;
 	const int USE_ON = 0x00000083;
 	const int FOLLOW = 0x000000A2;
 	const int ATTACK = 0x000000A1;
-	const int FIGHT_MODE = 0x000000A1;
+	const int FIGHT_MODE = 0x000000A0;
 	const int SAY = 0x00000096;
 }
 
@@ -114,6 +125,22 @@ namespace OFFSET {
 	const int TILE = 0x000002A;
 	const int TILE_ITEM_COUNT = 0x00000000;
 	const int TILE_ID = 0x00000001;
+
+	const int POKEMON_SLOT[6][3] = {
+		{0x8, 0x1D0, 0x24},  // Slot 1
+		{0x8, 0x1D0, 0x50},  // Slot 2
+		{0x8, 0x1D0, 0x7C},  // Slot 3
+		{0x8, 0x1D0, 0xA8},  // Slot 4
+		{0x8, 0x1D0, 0xD4},  // Slot 5
+		{0x8, 0x1D0, 0x100}  // Slot 6
+	};
+}
+
+namespace STEP {
+	const int UP = 0x00000065;
+	const int RIGHT = 0x00000066;
+	const int LEFT = 0x00000068;
+	const int DOWN = 0x00000067;
 }
 
 namespace BATTLELIST {
@@ -124,9 +151,11 @@ namespace BATTLELIST {
 
 namespace COOLDOWN {
 	const int TIME_TO_WAIT_FOR_TARGETING = 0x00000200;
-	const int TIME_TO_WAIT_FOR_ATTACKING = 0x00000200;
+	const int TIME_TO_WAIT_FOR_ATTACKING = 0x00000400;
 	const int TIME_TO_WAIT_FOR_FISHING = 0x0001000;
-	const int SEND_PACKET = 0x00000032;
+	const int TIME_TO_WAIT_FOR_LOVING = 0x00016378;
+	const int TIME_TO_WAIT_FOR_EGG_LOVING = 0x0002C308;
+	const int SEND_PACKET = 0x0000100;
 }
 
 namespace AUTO {
@@ -138,7 +167,21 @@ namespace AUTO {
 
 namespace GUI {
 	const LPCSTR NAME = "Elfobot 3";
-	const int WIDTH = 250;
-	const int HEIGHT = 350;
+	const int WIDTH = 600;
+	const int HEIGHT = 200;
 	static char TARGET_WINDOW[] = "PokeBRO";
+}
+
+namespace COMMANDS {
+	static const char CONNECT[] = "\x01\/init 0";
+
+	static const char ADD_EGG_ENERGY[] = "\x01\/daycare addenergy";
+
+	static const char LOVE[] = "\x01\/love";
+
+	static const char HAPPINESS[] = "\x01\/happiness";
+
+	static const char EGG_LOVE[] = "\x01\/daycare love";
+
+	static const char THROW[] = "\x01\/throw";
 }
