@@ -4,17 +4,6 @@
 #include <Windows.h>
 #include "constant.h"
 #include "imgui.h"
-#include "auto.h"
-#include "packet.h"
-#include "map.h"
-#include "util.h"
-#include "config.h"
-#include "ui.h"
-#include "ability.h"
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <cstring>
 
 class Drawing
 {

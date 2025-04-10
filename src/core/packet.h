@@ -1,10 +1,5 @@
 #pragma once
 #include "util.h"
-#include <functional>
-#include <queue>
-#include <mutex>
-#include <condition_variable>
-#include <thread>
 
 namespace SendPacket {
 	//Step at one direction
@@ -38,43 +33,4 @@ namespace SendPacket {
 
 	void Test();
 
-	void EnqueueStep(int direction);
-
-	void EnqueueLookItemPacket(int container, int container_slot, int container_item);
-
-	void EnqueueUseItemPacket(int container, int container_slot, int container_item);
-
-	void EnqueueMoveItemPacket(int from_container, int from_container_slot, int from_container_item, int to_container, int to_container_slot);
-
-	//void EnqueueUseOnPacket(int container, int container_slot, int x_position, int y_position, int z_position);
-
-	void EnqueueUseOn(int container, int container_slot, Util::Vector3 location);
-
-	void EnqueueFollow(int creature);
-
-	void EnqueueAttack(int creature);
-
-	void EnqueueFightMode(int fighting_mode, int stand_mode, int attack_unmarked);
-
-	void EnqueueSay(const char* text, int channel);
-
 }
-
-struct PacketTask {
-	std::function<void()> task;
-};
-
-class PacketQueue {
-public:
-	void push(const PacketTask& task);
-	PacketTask pop();
-	void shutdown();
-private:
-	std::queue<PacketTask> m_queue;
-	std::mutex m_mutex;
-	std::condition_variable m_condVar;
-	bool m_shutdown = false;
-
-};
-
-extern PacketQueue packetQueue;
