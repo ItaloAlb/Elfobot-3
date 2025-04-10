@@ -42,26 +42,26 @@
 
 DWORD WINAPI DebugConsole(LPVOID lpParam) {
     // Allocate and attach a console
-    //AllocConsole();
+    AllocConsole();
 
     // Redireciona a saída padrão para o console
-    //FILE* fp;
-    //freopen_s(&fp, "CONOUT$", "w", stdout);
+    FILE* fp;
+    freopen_s(&fp, "CONOUT$", "w", stdout);
     // Print debug information 
     while (true) {
         Sleep(32);
         if (Auto::is_wasd_move) {
             if (GetAsyncKeyState('W') & 1) {
-                SendPacket::Step(STEP::UP);
+                SendPacket::EnqueueStep(STEP::UP);
             }
             if (GetAsyncKeyState('A') & 1) {
-                SendPacket::Step(STEP::LEFT);
+                SendPacket::EnqueueStep(STEP::LEFT);
             }
             if (GetAsyncKeyState('S') & 1) {
-                SendPacket::Step(STEP::DOWN);
+                SendPacket::EnqueueStep(STEP::DOWN);
             }
             if (GetAsyncKeyState('D') & 1) {
-                SendPacket::Step(STEP::RIGHT);
+                SendPacket::EnqueueStep(STEP::RIGHT);
             }
         }
         //if (GetAsyncKeyState('E') & 1) {
@@ -71,12 +71,12 @@ DWORD WINAPI DebugConsole(LPVOID lpParam) {
 
         if (GetAsyncKeyState(VK_XBUTTON1) & 1) {
             *POINTER::FIGHTING_MODE = 1;
-            SendPacket::FightMode(*POINTER::FIGHTING_MODE, 0, 0);
+            SendPacket::EnqueueFightMode(*POINTER::FIGHTING_MODE, 0, 0);
         }
 
         if (GetAsyncKeyState(VK_XBUTTON2) & 1) {
             *POINTER::FIGHTING_MODE = 3;
-            SendPacket::FightMode(*POINTER::FIGHTING_MODE, 0, 0);
+            SendPacket::EnqueueFightMode(*POINTER::FIGHTING_MODE, 0, 0);
         }
 
         if (Auto::top_hunt) {
@@ -85,38 +85,39 @@ DWORD WINAPI DebugConsole(LPVOID lpParam) {
                 // GetAsyncKeyState returns a short, so we test the least significant bit.
                 if ((GetAsyncKeyState('1' + i) & 1) && !Auto::cooldownActive[i]) {
                     std::string cmd = std::string(COMMANDS::THROW) + " " + std::to_string(Auto::slot[i]);
-                    SendPacket::Say(cmd.c_str(), 1);
+                    std::cout << cmd.c_str() << std::endl;
+                    SendPacket::EnqueueSay(cmd.c_str(), 1);
+                    //SendPacket::Say(cmd.c_str(), 1);
 
-                    Sleep(COOLDOWN::SEND_PACKET);
-                    SendPacket::Say(COMMANDS::LOVE, 1);
+                    //SendPacket::Say(COMMANDS::LOVE, 1);
+                    SendPacket::EnqueueSay(COMMANDS::LOVE, 1);
+                    SendPacket::EnqueueSay(COMMANDS::LOVE, 1);
 
                     // Send buff text
                     if (Auto::buff[i][0] != '\0' && Auto::buff[i][0] == 'm') {
-                        SendPacket::Say(Auto::buff[i], 1);
-                        SendPacket::Say(Auto::buff[i], 1);
-                        Sleep(COOLDOWN::SEND_PACKET);
+                        SendPacket::EnqueueSay(Auto::buff[i], 1);
                     }
                     // Send protect text
                     if (Auto::protect[i][0] != '\0' && Auto::protect[i][0] == 'm') {
 
-                        SendPacket::Say(Auto::protect[i], 1);
-                        SendPacket::Say(Auto::protect[i], 1);
-                        Sleep(COOLDOWN::SEND_PACKET);
+                        SendPacket::EnqueueSay(Auto::protect[i], 1);
+                        SendPacket::EnqueueSay(Auto::protect[i], 1);
                     }
 
                     *POINTER::FIGHTING_MODE = 1;
-                    SendPacket::FightMode(1, 0, 0);
+                    SendPacket::EnqueueFightMode(1, 0, 0);
 
                     // Send each AOE text based on the current count for this Pokemon
                     for (int j = 0; j < Auto::aoeCount[i]; j++) {
                         if (Auto::aoe[i][j][0] != '\0' && Auto::aoe[i][j][0] == 'm') {
-                            SendPacket::Say(Auto::aoe[i][j], 1);
-                            SendPacket::Say(Auto::aoe[i][j], 1);
+                            SendPacket::EnqueueSay(Auto::aoe[i][j], 1);
+                            SendPacket::EnqueueSay(Auto::aoe[i][j], 1);
+                            SendPacket::EnqueueSay(Auto::aoe[i][j], 1);
                         }
                     }
 
                     *POINTER::FIGHTING_MODE = 3;
-                    SendPacket::FightMode(3, 0, 0);
+                    SendPacket::EnqueueFightMode(3, 0, 0);
 
                     Auto::cooldownActive[i] = true;
                     Auto::cooldownRemaining[i] = Auto::iCooldown[i];
@@ -125,8 +126,16 @@ DWORD WINAPI DebugConsole(LPVOID lpParam) {
         }
     }
 
-    //FreeConsole();
+    FreeConsole();
 
+    return 0;
+}
+
+DWORD WINAPI PacketSenderThread(LPVOID lpParam) {
+    while (true) {
+        PacketTask task = packetQueue.pop(); // Aguarda até ter um pacote
+        task.task(); // Executa o envio (com Sleep interno, se tiver)
+    }
     return 0;
 }
 
@@ -141,6 +150,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 
         // Create the debugging console thread
         CreateThread(nullptr, NULL, DebugConsole, nullptr, NULL, nullptr);
+
+        CreateThread(nullptr, NULL, PacketSenderThread, nullptr, NULL, nullptr);
 
         return TRUE;
     }

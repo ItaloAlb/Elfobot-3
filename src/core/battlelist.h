@@ -12,4 +12,6 @@ class BattleList {
 		static std::list<int> GetEntityIdList(Flag flag, int last_search_index = 0);
 
 		static int GetLocalPlayerAddress();
+
+		static int GetCombatSituation();
 };

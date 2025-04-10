@@ -22,6 +22,9 @@ list<int> BattleList::GetEntityIdList(Flag flag, int last_search_index) {
 			Entity entity(ADDRESS::BATTLE_LIST_START_SEARCH + (OFFSET::ENTITY * i));
 			if (entity.id == 0)
 				break;
+			//if (!entity_id_list.empty() && entity.id == entity_id_list.front()) {
+			//	break;
+			//}
 			if (entity.IsValidWildPokemon())
 				entity_id_list.push_back(entity.id);
 		}
@@ -50,4 +53,25 @@ int BattleList::GetLocalPlayerAddress() {
 		}
 	}
 	return -1;
+}
+
+int BattleList::GetCombatSituation() {
+	// Get the list of wild Pokémon in the scene.
+	std::list<int> enemyIds = GetEntityIdList(ONLY_WILD_POKEMON);
+
+	//for (const int id : enemyIds) {
+ //   std::cout << id << " ";
+	//}
+	//std::cout << std::endl;
+
+	enemyIds.pop_back();
+
+	// Determine the combat situation based on the number of enemies.
+	size_t count = enemyIds.size();
+	if (count == 0)
+		return 0; // No enemy present.
+	else if (count == 1)
+		return 1; // Single enemy.
+	else
+		return 2; // Multiple enemies.
 }
