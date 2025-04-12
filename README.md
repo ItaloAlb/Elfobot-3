@@ -10,3 +10,4 @@ Features:
 - auto reconnect
 - hotkeys for throw pokemons out of the pokeball
 - pokemon combo automation
+- auto fishing
