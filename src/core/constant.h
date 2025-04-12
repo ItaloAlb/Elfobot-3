@@ -97,8 +97,14 @@ namespace OFFSET {
 	const int Z_POSITION = 0x0000002C;
 	// entity percentual health
 	const int HEALTH = 0x00000088;
+	// entity sprite id; is shiny? yes if 2000 < id <= 2700 else no
+	const int SPRITE_ID = 0x00000060;
+	// entity is local player pokemon? yes : no
+	const int IS_LOCAL_PLAYER_POKEMON = 0x00000090;
 	// entity can be attacked? yes : no
 	const int CAN_BE_ATTACKED = 0x000000A4;
+	//
+	
 
 	// offset next item
 	const int ITEM = 0x0000000C;
@@ -151,11 +157,16 @@ namespace BATTLELIST {
 
 namespace COOLDOWN {
 	const int TIME_TO_WAIT_FOR_TARGETING = 0x00000200;
-	const int TIME_TO_WAIT_FOR_ATTACKING = 0x00000400;
+	const int TIME_TO_WAIT_FOR_ATTACKING = 0x00000300;
 	const int TIME_TO_WAIT_FOR_FISHING = 0x0001000;
 	const int TIME_TO_WAIT_FOR_LOVING = 0x00016378;
 	const int TIME_TO_WAIT_FOR_EGG_LOVING = 0x0002C308;
 	const int SEND_PACKET = 0x0000100;
+}
+
+namespace FISHING {
+	const int WILD_POKEMON_THRESHOLD = 3;
+	const int MIN_COOLDOWN = 3000;
 }
 
 namespace AUTO {

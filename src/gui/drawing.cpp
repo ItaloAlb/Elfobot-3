@@ -1,15 +1,4 @@
 #include "drawing.h"
-#include "constant.h"
-#include "auto.h"
-#include "packet.h"
-#include "map.h"
-#include "util.h"
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <cstring>
-#include "config.h"
-#include "ui.h"
 
 
 LPCSTR Drawing::lpWindowName = GUI::NAME;
@@ -22,6 +11,7 @@ HWND hTargetWindow = nullptr;
 HWND hOverlayWindow = nullptr;
 
 bool teamBuilderWindow = false;
+bool fishingWindow = false;
 
 static bool     showDetails[6] = { true, true, true, true, true, true };
 
@@ -55,6 +45,8 @@ void Drawing::Draw()
     if (isActive())
     {
         UpdateWindowHandles();
+
+        Auto::UpdateCooldowns(ImGui::GetIO().DeltaTime);
 
         bool isTargetActive = (GetForegroundWindow() == hTargetWindow);
 
@@ -93,6 +85,18 @@ void Drawing::Draw()
             if (ImGui::Checkbox("auto_connecting", &Auto::controller_connecting)) {
                 Auto::Callback(&Auto::Connecting, std::ref(Auto::controller_connecting));
             }
+
+            if (ImGui::Checkbox("auto_fishing", &Auto::controller_fishing)) {
+                Auto::Callback(&Auto::Fishing, std::ref(Auto::controller_fishing));
+            }
+            ImGui::Spacing();
+            ImGui::PushItemWidth(100);
+            ImGui::SliderInt("fishing_rod_container", &Auto::controller_fishing_rod_container, 64, 69);
+            ImGui::SliderInt("fishing_rod_id", &Auto::controller_fishing_rod_id, 0, 3);
+            ImGui::SliderInt("fishing_cooldown", &Auto::controller_fishing_cooldown, 3, 30);
+            ImGui::SliderInt("fishing_wild_pokemon_threshold", &Auto::controller_fishing_wild_pokemon_threshold, 1, 9);
+            ImGui::PopItemWidth();
+
 
             //if (ImGui::Button("full_attack", ImVec2(100, 25)))
             //{
@@ -139,12 +143,168 @@ void Drawing::Draw()
                     Auto::slot[i] = Util::GetValueFromOffsetChain(ADDRESS::POKEMON_SLOT, OFFSET::POKEMON_SLOT[i]);
                 }
             }
-            ImGui::Spacing();
+            ImGui::SameLine();
             if (ImGui::Checkbox("top_hunt", &Auto::top_hunt)) {
                 //
             }
+            ImGui::Spacing();
+            if (ImGui::Button("fishing", ImVec2(100, 25)))
+            {
+                fishingWindow = true;
+            }
         }
         ImGui::End();
+
+        if (fishingWindow) {
+            ImGui::SetNextWindowSize(ImVec2(600, 800));
+            ImGui::Begin("Fishing", &fishingWindow, WindowFlags);
+
+            if (Auto::moveset.size() != 12) {
+                Auto::moveset.resize(12);
+                for (size_t i = 0; i < Auto::moveset.size(); ++i) {
+                    // Assign default name as m1, m2, etc.
+                    Auto::moveset[i].name = "m" + std::to_string(i + 1);
+                }
+            }
+
+            // Render each move's properties
+            for (size_t i = 0; i < Auto::moveset.size(); i++) {
+                Ability& ability = Auto::moveset[i];
+
+                // Display the move name as a static label ("m1", "m2", ...)
+                ImGui::Text("%s :", ability.name.c_str());
+
+                // Edit cooldown
+                ImGui::PushItemWidth(25); // Define a largura para 50 pixels
+                ImGui::InputInt(("Cooldown##" + std::to_string(i)).c_str(), &ability.cooldown, 0);
+                ImGui::PopItemWidth();
+
+                // Edit tags: using checkboxes for a fixed set of tags.
+                static const char* tagOptions[] = { "deffensive buff", "offensive buff", "single target", "AoE", "heal" };
+                bool tagSelections[5] = { false, false, false, false, false };
+
+                // Pre-check the tags that are already selected
+                for (size_t t = 0; t < 5; t++) {
+                    if (std::find(ability.tags.begin(), ability.tags.end(), tagOptions[t]) != ability.tags.end()) {
+                        tagSelections[t] = true;
+                    }
+                }
+
+                for (size_t t = 0; t < 5; t++) {
+                    if (ImGui::Checkbox((std::string(tagOptions[t]) + "##" + std::to_string(i) + "_" + std::to_string(t)).c_str(), &tagSelections[t])) {
+                        // Update the tags vector based on user selection
+                        if (tagSelections[t]) {
+                            if (std::find(ability.tags.begin(), ability.tags.end(), tagOptions[t]) == ability.tags.end())
+                                ability.tags.push_back(tagOptions[t]);
+                        }
+                        else {
+                            ability.tags.erase(std::remove(ability.tags.begin(), ability.tags.end(), tagOptions[t]), ability.tags.end());
+                        }
+                    }
+                    ImGui::SameLine();
+                }
+                ImGui::NewLine();
+            }
+
+            // Button to save the moveset to INI file
+            if (ImGui::Button("Save Moveset")) {
+                std::ofstream file("moveset.ini");
+                if (!file.is_open()) {
+                    // Handle file open error
+                    return;
+                }
+
+                for (const auto& ability : Auto::moveset) {
+                    // Section header: use the move name (or a unique identifier)
+                    file << "[" << ability.name << "]\n";
+
+                    // Save tags as a comma-separated list
+                    file << "tags=";
+                    for (size_t i = 0; i < ability.tags.size(); ++i) {
+                        file << ability.tags[i];
+                        if (i < ability.tags.size() - 1) {
+                            file << ",";
+                        }
+                    }
+                    file << "\n";
+
+                    // Save cooldown
+                    file << "cooldown=" << ability.cooldown << "\n\n";
+                }
+
+                file.close();
+            }
+
+            if (ImGui::Button("Load Moveset")) {
+                std::ifstream file("moveset.ini");
+                if (!file.is_open()) {
+                    // File couldn't be opened (maybe it doesn't exist)
+                    return;
+                }
+                Auto::moveset.clear();
+
+                std::string line;
+                Ability current;
+                while (std::getline(file, line)) {
+                    if (line.empty())
+                        continue;
+
+                    // Check if the line is a section header.
+                    if (line.front() == '[' && line.back() == ']') {
+                        // If a move is in progress, add it to the moveset.
+                        if (!current.name.empty()) {
+                            Auto::moveset.push_back(current);
+                            current = Ability();
+                        }
+                        // Remove the '[' and ']' to get the move name.
+                        current.name = line.substr(1, line.size() - 2);
+                    }
+                    else {
+                        // Look for key=value pairs.
+                        size_t pos = line.find('=');
+                        if (pos != std::string::npos) {
+                            std::string key = line.substr(0, pos);
+                            std::string value = line.substr(pos + 1);
+                            if (key == "cooldown") {
+                                current.cooldown = std::stoi(value);
+                            }
+                            else if (key == "tags") {
+                                current.tags.clear();
+                                std::istringstream iss(value);
+                                std::string tag;
+                                // Split by comma.
+                                while (std::getline(iss, tag, ',')) {
+                                    // Trim whitespace.
+                                    tag.erase(tag.begin(), std::find_if(tag.begin(), tag.end(), [](unsigned char ch) {
+                                        return !std::isspace(ch);
+                                        }));
+                                    tag.erase(std::find_if(tag.rbegin(), tag.rend(), [](unsigned char ch) {
+                                        return !std::isspace(ch);
+                                        }).base(), tag.end());
+                                    if (!tag.empty()) {
+                                        current.tags.push_back(tag);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Add the last move if present.
+                if (!current.name.empty()) {
+                    Auto::moveset.push_back(current);
+                }
+                file.close();
+
+                // Ensure there are exactly 12 moves. If there are fewer, initialize the rest.
+                while (Auto::moveset.size() < 12) {
+                    Ability newAbility;
+                    newAbility.name = "m" + std::to_string(Auto::moveset.size() + 1);
+                    Auto::moveset.push_back(newAbility);
+                }
+            }
+            
+            ImGui::End();
+        }
 
         if (teamBuilderWindow) {
             ImGui::SetNextWindowSize(ImVec2(350, 500));
