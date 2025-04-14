@@ -25,9 +25,9 @@ class Entity {
 		
 		int GetId();
 
-		int GetPercentualHealth();
-
 		bool GetCanBeAttacked();
+
+		int GetPercentualHealth();
 
 		bool IsValidWildPokemon();
 

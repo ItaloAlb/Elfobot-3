@@ -23,6 +23,8 @@ bool Auto::controller_connecting = false;
 
 int Auto::controller_fishing_wild_pokemon_threshold = 3;
 
+int Auto::controller_fishing_pokemon_health_threshold = 50;
+
 bool Auto::is_wasd_move = false;
 
 bool Auto::top_hunt = false;
@@ -62,17 +64,11 @@ void Auto::Fishing(bool& controller) {
 	while (controller) {
 		map.Update();
 		Entity entity(BattleList::GetLocalPlayerPokemonAddress());
-
-		std::cout << entity.GetPercentualHealth() << std::endl;
-		std::cout << entity.GetId() << std::endl;
-		
-		//Entity entity(BattleList::GetLocalPlayerPokemonAddress());
-		//std::cout << entity.GetPercentualHealth() << std::endl;
 		auto fishing_location = map.GetFishingLocation();
 		if (fishing_location.IsValid() && 
 			*POINTER::CLIENT_STATE == 1 && 
-			BattleList::GetEntityCount(ONLY_WILD_POKEMON) <= controller_fishing_wild_pokemon_threshold &&
-			entity.GetPercentualHealth() >= 30) {
+			BattleList::GetEntityCount(ONLY_WILD_POKEMON) < controller_fishing_wild_pokemon_threshold &&
+			entity.GetPercentualHealth() > controller_fishing_pokemon_health_threshold) {
 			SendPacket::EnqueueUseOn(Auto::controller_fishing_rod_container, Auto::controller_fishing_rod_id, fishing_location);
 			Sleep(controller_fishing_cooldown * 1000);
 		}

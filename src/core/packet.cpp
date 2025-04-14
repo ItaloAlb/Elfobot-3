@@ -1,5 +1,9 @@
 #include "packet.h"
 #include "constant.h"
+#include <fstream>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 
 void SendPacket::Step(int direction) {
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_START)(direction);
@@ -107,15 +111,91 @@ void SendPacket::Follow(int creature) {
 	Sleep(COOLDOWN::SEND_PACKET);
 }
 
+//void SendPacket::Attack(int creature) {
+//	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_START)(PACKET::ATTACK);
+//
+//	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_TARGET)(creature);
+//
+//	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_END)(PACKET::END);
+//
+//	Sleep(COOLDOWN::SEND_PACKET);
+//}
+
+
 void SendPacket::Attack(int creature) {
-	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_START)(PACKET::ATTACK);
-
-	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_TARGET)(creature);
-
-	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_END)(PACKET::END);
-
-	Sleep(COOLDOWN::SEND_PACKET);
+	__try {
+		if (creature == 0)
+			return;
+		reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_START)(PACKET::ATTACK);
+		reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_TARGET)(creature);
+		reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_END)(PACKET::END);
+		Sleep(COOLDOWN::SEND_PACKET);
+	}
+	__except (
+		reinterpret_cast<LONG(__cdecl*)(EXCEPTION_POINTERS*)>(ADDRESS::MODULE_HANDLE + 0x579F4A)(GetExceptionInformation())
+		)
+	{
+		std::cout << "SendPacket::Attack(int creature) exception" << std::endl;
+	}
 }
+
+//__declspec(naked) void SendPacket::Attack(int creature) {
+//	__asm {
+//		push ebp
+//		mov ebp, esp
+//		// Configura o handler de exceção corretamente:
+//		push 0xFFFFFFFF
+//		mov eax, ADDRESS::MODULE_HANDLE
+//		add eax, 0x579F4A
+//		push eax
+//		mov eax, dword ptr fs : [0]
+//		push eax
+//		mov dword ptr fs : [0] , esp
+//		sub esp, 0x188
+//		push ebx
+//		push esi
+//		push edi
+//		mov dword ptr ss : [ebp - 0x10] , esp
+//		mov dword ptr ss : [ebp - 4] , 0
+//		mov esi, dword ptr ss : [ebp + 8]
+//		test esi, esi
+//		je exit
+//
+//		// Chamada na função em MODULE_HANDLE + 0x45CC40
+//		mov eax, ADDRESS::MODULE_HANDLE
+//		add eax, 0x45CC40
+//		call eax
+//
+//		push 0xA1
+//		call ADDRESS::PACKET_START   // Se esse valor já é o endereço absoluto, ok.
+//
+//		// Chamada na função em MODULE_HANDLE + 0x4F3C90
+//		mov eax, ADDRESS::MODULE_HANDLE
+//		add eax, 0x4F3C90
+//		push esi
+//		call eax
+//
+//		push 1
+//		call ADDRESS::PACKET_END     // Se esse valor já é o endereço absoluto, ok.
+//
+//		add esp, 0xC
+//
+//		mov dword ptr ss : [ebp - 4] , 0xFFFFFFFF
+//		mov ecx, dword ptr ss : [ebp - 0xC]
+//		mov dword ptr fs : [0] , ecx
+//
+//		exit :
+//		pop edi
+//			pop esi
+//			pop ebx
+//			mov esp, ebp
+//			pop ebp
+//			ret
+//	}
+//}
+
+
+
 
 void SendPacket::FightMode(int fighting_mode, int stand_mode, int attack_unmarked) {
 	reinterpret_cast<void(__cdecl*)(int)>(ADDRESS::PACKET_START)(PACKET::FIGHT_MODE);

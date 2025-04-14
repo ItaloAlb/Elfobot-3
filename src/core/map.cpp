@@ -1,5 +1,4 @@
 #include "map.h"
-#include "constant.h"
 
 Tile::Tile(int* address, int x, int y, int z) {
 	Tile::item_count = address + OFFSET::TILE_ITEM_COUNT;
@@ -16,11 +15,50 @@ Tile::Tile() {
 }
 
 bool Tile::IsValidFishingLocation() {
-	return	*id >= AUTO::MIN_FISHING_TILE_ID_VALUE &&
-			*id <= AUTO::MAX_FISHING_TILE_ID_VALUE &&
-			std::abs(x_position - *POINTER::LOCAL_PLAYER_X_POSITION) <= 7 &&
-			std::abs(y_position - *POINTER::LOCAL_PLAYER_Y_POSITION) <= 5;
+	bool validID = (*id == 4809) || (*id == 4810) || (*id == 4811) ||
+		(*id == 4812) || (*id == 4813) || (*id == 4814) ||
+		(*id == 4600) || (*id == 4601) || (*id == 4602) ||
+		(*id == 5526) || (*id == 5527) || (*id == 5528);
+
+	return validID &&
+		std::abs(x_position - *POINTER::LOCAL_PLAYER_X_POSITION) <= 7 &&
+		std::abs(y_position - *POINTER::LOCAL_PLAYER_Y_POSITION) <= 5;
 }
+
+//bool Tile::IsValidFishingLocation() {
+//	int tileId = *id;
+//
+//	// Conjunto com os IDs adicionais de fishing tiles.
+//	static const std::unordered_set<int> fishingTileIds = {
+//		0x00001596,
+//		0x00001597,
+//		0x00001598,
+//		0x02689A84,
+//		0x02689B2C,
+//		0x02689BD4,
+//		0x02689C7C,
+//		0x02689D24,
+//		0x02689DCC,
+//		0x02689E74,
+//		0x02689F1C,
+//		0x02689FC4,
+//		0x0268A06C,
+//		0x0268A114,
+//		0x0268A1BC,
+//		0x0268A264,
+//		0x0268A30C
+//	};
+//
+//	// Verifica se o tileId é válido:
+//	// Se o tileId não estiver no intervalo padrão e também não estiver no conjunto adicional, retorna false.
+//	if (fishingTileIds.find(tileId) == fishingTileIds.end()) {
+//		return false;
+//	}
+//
+//	// Verifica se a posição da tile está dentro da área de alcance do jogador.
+//	return std::abs(x_position - *POINTER::LOCAL_PLAYER_X_POSITION) <= 7 &&
+//		std::abs(y_position - *POINTER::LOCAL_PLAYER_Y_POSITION) <= 5;
+//}
 
 Map::Map() {
 	Map::state = false;
@@ -69,7 +107,7 @@ void Map::PrintMap()
 	for (int y = 0; y < 14; y++) {
 		for (int x = 0; x < 18; x++) {
 			auto& current_tile = tile[*POINTER::LOCAL_PLAYER_Z_POSITION - 7][y][x];
-			std::cout << "[" << current_tile.id << "] ";
+			std::cout << "[" << *current_tile.id << "] ";
 		}
 		std::cout << std::endl;
 	}

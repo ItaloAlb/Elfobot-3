@@ -1,6 +1,9 @@
 #pragma once
 #include "enum.h"
 #include "util.h"
+#include "constant.h"
+#include <unordered_set>
+#include <cmath>
 
 class Tile {
 	public:

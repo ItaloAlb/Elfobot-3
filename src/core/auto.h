@@ -30,7 +30,7 @@ namespace Auto {
 
     extern int slot[6];
 
-    extern int controller_fishing_rod_container, controller_fishing_rod_id, controller_fishing_cooldown, controller_fishing_wild_pokemon_threshold;
+    extern int controller_fishing_rod_container, controller_fishing_rod_id, controller_fishing_cooldown, controller_fishing_wild_pokemon_threshold, controller_fishing_pokemon_health_threshold;
 
     void Targeting(bool& controller);
     void Fishing(bool& controller);

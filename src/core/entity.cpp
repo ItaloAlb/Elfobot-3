@@ -2,15 +2,30 @@
 #include "constant.h"
 
 Entity::Entity(int address) {
-	Entity::id = *(int*)(address + OFFSET::ID);
-	//Entity::name = *(string*)(address + OFFSET::NAME);
-	Entity::x_position = *(int*)(address + OFFSET::X_POSITION);
-	Entity::y_position = *(int*)(address + OFFSET::Y_POSITION);
-	Entity::z_position = *(int*)(address + OFFSET::Z_POSITION);
-	Entity::health = *(int*)(address + OFFSET::HEALTH);
-	Entity::can_be_attacked = *(bool*)(address + OFFSET::CAN_BE_ATTACKED);
-	Entity::sprite_id = *(int*)(address + OFFSET::SPRITE_ID);
-	Entity::is_local_player_pokemon = *(bool*)(address + OFFSET::IS_LOCAL_PLAYER_POKEMON);
+    if (address == -1) {
+        // Configura uma entidade com valores inválidos ou um estado de erro
+        Entity::id = -1;
+        // Se for uma string, considere atribuir uma string vazia ou "invalido"
+        Entity::x_position = -1;
+        Entity::y_position = -1;
+        Entity::z_position = -1;
+        Entity::health = -1;
+        Entity::can_be_attacked = false; // melhor representado como false, pois bool
+        Entity::sprite_id = -1;
+        Entity::is_local_player_pokemon = false;
+        return;  // Interrompe a construção da entidade
+    }
+    else {
+        Entity::id = *reinterpret_cast<int*>(address + OFFSET::ID);
+        // Entity::name = *reinterpret_cast<string*>(address + OFFSET::NAME);
+        Entity::x_position = *reinterpret_cast<int*>(address + OFFSET::X_POSITION);
+        Entity::y_position = *reinterpret_cast<int*>(address + OFFSET::Y_POSITION);
+        Entity::z_position = *reinterpret_cast<int*>(address + OFFSET::Z_POSITION);
+        Entity::health = *reinterpret_cast<int*>(address + OFFSET::HEALTH);
+        Entity::can_be_attacked = *reinterpret_cast<bool*>(address + OFFSET::CAN_BE_ATTACKED);
+        Entity::sprite_id = *reinterpret_cast<int*>(address + OFFSET::SPRITE_ID);
+        Entity::is_local_player_pokemon = *reinterpret_cast<bool*>(address + OFFSET::IS_LOCAL_PLAYER_POKEMON);
+    }
 }
 
 void Entity::Update(int address) {
@@ -24,7 +39,7 @@ void Entity::Update(int address) {
 }
 
 bool Entity::IsValidWildPokemon() {
-	return	can_be_attacked == 1 &&
+	return	GetCanBeAttacked() &&
 			id >= BATTLELIST::MIN_WILD_POKEMON_ID_VALUE &&
 			id <= BATTLELIST::MAX_WILD_POKEMON_ID_VALUE &&
 			health > 0 &&
@@ -36,6 +51,10 @@ bool Entity::IsValidWildPokemon() {
 
 int Entity::GetId() {
 	return id;
+}
+
+bool Entity::GetCanBeAttacked() {
+    return can_be_attacked;
 }
 
 int Entity::GetPercentualHealth() {
@@ -51,5 +70,5 @@ bool Entity::IsShiny() {
 }
 
 bool Entity::IsLocalPlayerPokemon() {
-	return is_local_player_pokemon;
+	return is_local_player_pokemon && id >= BATTLELIST::MIN_WILD_POKEMON_ID_VALUE && id <= BATTLELIST::MAX_WILD_POKEMON_ID_VALUE && !GetCanBeAttacked();
 }

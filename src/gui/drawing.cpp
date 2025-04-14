@@ -95,25 +95,10 @@ void Drawing::Draw()
             ImGui::SliderInt("fishing_rod_id", &Auto::controller_fishing_rod_id, 0, 3);
             ImGui::SliderInt("fishing_cooldown", &Auto::controller_fishing_cooldown, 3, 30);
             ImGui::SliderInt("fishing_wild_pokemon_threshold", &Auto::controller_fishing_wild_pokemon_threshold, 1, 9);
+            ImGui::SliderInt("fishing_pokemon_health_threshold", &Auto::controller_fishing_pokemon_health_threshold, 0, 100);
             ImGui::PopItemWidth();
 
 
-            //if (ImGui::Button("full_attack", ImVec2(100, 25)))
-            //{
-            //    
-            //}
-
-            //if (ImGui::Button("balanced", ImVec2(100, 25)))
-            //{
-            //    *POINTER::FIGHTING_MODE = 2;
-            //    SendPacket::FightMode(*POINTER::FIGHTING_MODE, 0, 0);
-            //}
-            //
-            //if (ImGui::Button("full_defensive", ImVec2(100, 25)))
-            //{
-            //    *POINTER::FIGHTING_MODE = 3;
-            //    SendPacket::FightMode(*POINTER::FIGHTING_MODE, 0, 0);
-            //}
             ImGui::Spacing();
             for (int i = 0; i < 6; i++) {
                 if (Auto::cooldownActive[i]) {
@@ -151,6 +136,12 @@ void Drawing::Draw()
             if (ImGui::Button("fishing", ImVec2(100, 25)))
             {
                 fishingWindow = true;
+            }
+            ImGui::Spacing();
+            if (ImGui::Button("print map", ImVec2(100, 25)))
+            {
+                Map map = Map();
+                map.PrintMap();
             }
         }
         ImGui::End();
